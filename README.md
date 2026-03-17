@@ -1,6 +1,6 @@
 # OneClinic
 
-**Sistema de Gestão Inteligente para Clínicas de Estética**
+**Sistema de Gestão Inteligente para Clínicas de Estética (SaaS Profissional)**
 
 ---
 
@@ -23,106 +23,199 @@ Todos os direitos reservados.
 
 Clínicas de estética de pequeno porte no Brasil ainda operam com:
 
-- **Agendas em papel** -- sem controle de horários, conflitos e cancelamentos  
-- **Planilhas manuais** -- financeiro fragmentado, sem visão real do caixa  
-- **Estoque no "olhômetro"** -- produtos acabam sem aviso, compras por impulso  
-- **Fichas de papel** -- histórico do cliente perdido, sem rastreabilidade  
-- **Zero controle de inadimplência** -- sessões realizadas e nunca cobradas  
-- **Comunicação desorganizada** -- lembretes esquecidos, clientes que não voltam  
+- **Agendas em papel** — sem controle de horários, conflitos e cancelamentos  
+- **Planilhas manuais** — financeiro fragmentado, sem visão real do caixa  
+- **Estoque no "olhômetro"** — produtos acabam sem aviso, compras por impulso  
+- **Fichas de papel** — histórico do cliente perdido, sem rastreabilidade  
+- **Zero controle de inadimplência** — sessões realizadas e nunca cobradas  
+- **Comunicação desorganizada** — lembretes esquecidos, clientes que não voltam  
 
-O resultado: perda de receita, retrabalho, clientes insatisfeitos e um dono de clínica que trabalha mais como administrador do que como profissional.
+O resultado: perda de receita, retrabalho, clientes insatisfeitos e um dono de clínica sobrecarregado.
 
 ---
 
 ## A Solução
 
-O **OneClinic** é um sistema de gestão completo, desenvolvido especificamente para a realidade de clínicas de estética de pequeno porte. Ele substitui cadernos, planilhas e grupos de WhatsApp por uma única plataforma que organiza toda a operação da clínica.
+O **OneClinic** é um sistema SaaS completo, desenvolvido especificamente para a realidade de clínicas de estética. Ele substitui cadernos, planilhas e aplicativos desconectados por uma única plataforma integrada.
 
-O sistema foi projetado para ser **simples de usar** -- a equipe não precisa de treinamento técnico. O próprio dono configura tudo no primeiro acesso e começa a operar no mesmo dia.
+O sistema foi projetado para ser:
+
+- **Simples** → uso imediato, sem treinamento técnico  
+- **Flexível** → regras adaptáveis por clínica  
+- **Escalável** → preparado para crescimento e monetização  
+
+---
+
+## Arquitetura do Sistema
+
+O OneClinic foi projetado como um sistema **multi-tenant**, onde múltiplas clínicas utilizam a mesma aplicação com isolamento total de dados.
+
+### 🔑 Princípios Técnicos
+
+- Uso de **UUID** como chave primária  
+- Isolamento por `clinica_id`  
+- Estrutura preparada para **Row Level Security (RLS)**  
+- Modelagem orientada a domínio (DDD simplificado)  
+
+---
+
+## Engine de Configuração Dinâmica
+
+O sistema utiliza uma tabela central chamada `parametros`, que funciona como um motor de regras configurável.
+
+Com isso, cada clínica pode definir:
+
+- Status de agendamento (Confirmado, Cancelado, Em espera, etc)  
+- Status de parcelas (Pago, Pendente, Atrasado)  
+- Métodos de pagamento (Pix, Cartão, Dinheiro)  
+- Canais de comunicação (WhatsApp, Email)  
+
+**Benefício:**  
+Não é necessário alterar o código para mudar regras de negócio.
 
 ---
 
 ## O Que o OneClinic Faz
 
-### Gestão de Clientes
-Cadastro completo com histórico unificado: todas as sessões, compras, pagamentos, planos e comunicações de cada cliente em um só lugar. Crédito acumulado controlado automaticamente.
+### Gestão de Clientes (CRM)
+Cadastro completo com histórico unificado: sessões, pagamentos, planos, cupons e comunicações em um único lugar.
+
+---
 
 ### Agenda Inteligente
-Visualização por dia, semana ou profissional. Suporte a sessões avulsas, pacotes e planos recorrentes. Controle de status (confirmado, cancelado, concluído) e registro de presença.
+- Agendamentos por cliente e profissional  
+- Status dinâmico configurável  
+- Controle de presença e histórico  
 
-### Pacotes, Assinaturas e Cupons
-Criação de pacotes de sessões e assinaturas com controle automático de saldo e validade. Sistema de cupons de desconto com rastreamento de uso.
+---
+
+### Planos e Assinaturas (Recorrência)
+
+O sistema permite vender pacotes e planos recorrentes.
+
+Controle automático de:
+- Sessões restantes  
+- Validade  
+- Consumo por agendamento  
+
+---
+
+### Cupons e Anti-Fraude
+
+Sistema completo de cupons com:
+
+- Limite de uso  
+- Aplicação direta no agendamento  
+- Rastreamento via `cupons_usos`  
+
+**Benefício:** evita fraudes e garante controle total.
+
+---
 
 ### Controle de Estoque
-Cadastro de produtos com alerta de estoque mínimo. Baixa automática quando um produto é utilizado em uma sessão. Relatórios de produtos mais consumidos.
 
-### Financeiro Completo
-Controle de recebimentos por sessão, plano e venda de produto. Múltiplas formas de pagamento (Pix, cartão, dinheiro, boleto). Controle de caixa manual com entradas e saídas. Identificação automática de inadimplência. Emissão de recibos.
+- Registro de movimentações (entrada/saída)  
+- Rastreabilidade completa  
+- Base para automação de consumo por atendimento  
 
-### Notificações
-Envio e registro de mensagens para clientes via WhatsApp e e-mail. Lembretes de agendamento, cobranças e promoções com histórico completo.
+---
 
-### Dashboards e Relatórios
-Painel com métricas do dia: agendamentos, receita, estoque baixo, inadimplentes. Relatórios detalhados por período, profissional, serviço ou cliente.
+### Financeiro Profissional
+
+- Registro de pagamentos por agendamento  
+- Suporte a múltiplos métodos (dinâmicos)  
+- Parcelamento  
+- Controle de inadimplência  
+
+---
+
+### Comunicação com Clientes
+
+- Registro de mensagens enviadas  
+- Controle de status (enviado, erro, lido)  
+- Preparado para integração com APIs externas  
+
+---
+
+## Fluxo Principal do Sistema
+
+### Criação de um Agendamento
+
+1. Validação de horário disponível  
+2. Aplicação de cupom (opcional)  
+3. Verificação de assinatura ativa  
+4. Consumo de sessão **ou** geração de pagamento  
+5. Criação de parcelas (se necessário)  
 
 ---
 
 ## Controle de Acesso
 
-O sistema opera com três níveis de permissão, garantindo que cada membro da equipe acesse apenas o que é relevante para sua função:
+O sistema possui três níveis:
 
-**Administrador** -- O dono da clínica. Acesso total: cadastros, financeiro, relatórios, exclusões, configurações e gestão da equipe. É o primeiro usuário do sistema, criado na configuração inicial.
+**Administrador**
+- Controle total do sistema  
+- Configurações, financeiro e relatórios  
 
-**Secretário(a)** -- Responsável pela operação diária. Acessa agenda de todos os profissionais, cadastro de clientes, estoque, financeiro operacional, caixa e notificações.
+**Secretário(a)**
+- Operação da clínica  
+- Agenda, clientes, financeiro básico  
 
-**Profissional** -- O esteticista ou terapeuta. Acessa apenas sua própria agenda, registra atendimentos e consulta informações dos clientes que atende.
-
----
-
-## Como Começa
-
-1. O dono da clínica acessa o sistema pela primeira vez  
-2. Um assistente guiado em 3 passos configura: nome da clínica, dados do administrador e senha  
-3. O sistema está pronto para uso  
-4. O administrador cadastra sua equipe (secretários e profissionais)  
-5. A clínica começa a operar: cadastro de clientes, agendamento de sessões, controle financeiro  
-
-Não é necessário suporte técnico para a configuração inicial.
+**Profissional**
+- Acesso à própria agenda  
+- Registro de atendimentos  
 
 ---
 
 ## Para Quem é
 
-- Clínicas de estética de pequeno porte (1 a 10 profissionais)  
-- Studios de beleza e bem-estar  
-- Espaços de terapias e massagens  
-- Consultórios de micropigmentação, depilação, limpeza de pele  
-- Qualquer negócio de serviços de saúde e beleza que precise organizar agenda, clientes e financeiro  
+- Clínicas de estética (1 a 10 profissionais)  
+- Studios de beleza  
+- Espaços terapêuticos  
+- Negócios de serviços recorrentes  
 
 ---
 
-## Princípios do Projeto
+## Diferenciais do Sistema
 
-**Simplicidade** -- A interface é feita para quem não tem familiaridade com tecnologia. Tudo funciona com poucos cliques.
-
-**Privacidade** -- Dados sensíveis dos clientes (CPF, histórico, pagamentos) são tratados com segurança e em conformidade com a LGPD.
-
-**Autonomia** -- O dono da clínica não depende de suporte externo para configurar e operar o sistema.
-
-**Escalabilidade** -- O sistema foi projetado para crescer junto com o negócio, suportando mais profissionais, clientes e futuramente múltiplas unidades.
+- Arquitetura SaaS pronta para escala  
+- Motor de regras dinâmico (sem hardcode)  
+- Controle real de recorrência (planos e sessões)  
+- Sistema antifraude de cupons  
+- Financeiro estruturado (nível ERP leve)  
 
 ---
 
 ## Status do Projeto
 
-O OneClinic está em desenvolvimento ativo. Os módulos estão sendo construídos e validados de forma incremental, seguindo a ordem de prioridade operacional de uma clínica real.
+Em desenvolvimento ativo.
+
+A arquitetura e modelagem já estão consolidadas e prontas para produção.  
+Os próximos passos envolvem implementação de backend, frontend e deploy.
 
 ---
 
-## Contato
+## Roadmap
 
-Para informações sobre licenciamento, parceria ou demonstração, entre em contato diretamente com os responsáveis pelo projeto.
+- [ ] Backend (API e regras de negócio)  
+- [ ] Interface da agenda  
+- [ ] Módulo financeiro completo  
+- [ ] Integração com WhatsApp  
+- [ ] Deploy em ambiente SaaS  
 
 ---
 
-*OneClinic ® -- Todos os direitos reservados.*
+## Autor
+
+**Wedley Silva Schmoeller**  
+Engenharia de Software  
+
+---
+
+## Licença
+
+Uso restrito. Todos os direitos reservados.
+
+---
+
+*OneClinic ® — Sistema SaaS para clínicas modernas*
