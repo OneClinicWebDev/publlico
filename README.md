@@ -8,7 +8,7 @@
 
 ---
 
-## 1. Sobre o Projeto
+# 1. Sobre o Projeto
 
 O **OneClinic** é uma plataforma web SaaS voltada à gestão integrada de clínicas de estética, com foco em organização operacional, segurança dos dados, controle financeiro, estoque, clientes, profissionais e agendamentos.
 
@@ -93,6 +93,8 @@ O foco será:
 - Vite
 - PrimeVue
 - JavaScript/TypeScript conforme a implementação do projeto
+- Node.js
+- NPM
 
 Responsabilidades:
 
@@ -104,11 +106,11 @@ Responsabilidades:
 - Exibição dos dados
 - Controle visual de permissões
 
----
-
 ## Backend
 
+- Python
 - Django
+- Django REST Framework
 - API REST
 - Arquitetura em camadas
 
@@ -123,8 +125,6 @@ Responsabilidades:
 - Integrações
 - Auditoria
 
----
-
 ## Banco de Dados
 
 - PostgreSQL
@@ -138,21 +138,19 @@ Recursos utilizados/propostos:
 - Índices
 - Controle de integridade
 
----
-
 ## Autenticação
 
-A autenticação já possui estrutura de cadastro e login de usuários.
+A autenticação possui estrutura de cadastro e login de usuários.
 
 A próxima etapa é conectar essa autenticação ao fluxo completo:
 
 ```text
-Frontend
-   ↓
-API Django
-   ↓
+Frontend Vue.js
+      ↓
+API Django REST
+      ↓
 Autenticação
-   ↓
+      ↓
 PostgreSQL
 ```
 
@@ -160,37 +158,600 @@ O sistema também prevê proteção de sessão e controle de acesso por nível d
 
 ---
 
-# 6. Arquitetura
+# 6. Pré-requisitos
 
-O OneClinic utiliza uma arquitetura monolítica organizada em camadas, separando claramente:
+Antes de executar o projeto, é necessário possuir as seguintes ferramentas instaladas:
 
-```text
-┌──────────────────────────────┐
-│          Frontend            │
-│       Vue.js + PrimeVue      │
-└──────────────┬───────────────┘
-               │ HTTP / API
-               ↓
-┌──────────────────────────────┐
-│          Backend             │
-│            Django            │
-│                              │
-│  Auth / Regras / Serviços    │
-│  Clientes / Agenda / etc.    │
-└──────────────┬───────────────┘
-               │
-               ↓
-┌──────────────────────────────┐
-│        PostgreSQL            │
-│                              │
-│ Dados / Relacionamentos      │
-│ UUID / JSONB / Constraints   │
-└──────────────────────────────┘
+| Tecnologia | Versão recomendada |
+|---|---|
+| Git | 2.x ou superior |
+| Node.js | 18+ |
+| NPM | compatível com Node.js |
+| Python | 3.11+ |
+| PostgreSQL | 14+ |
+| Vue.js | 3 |
+| Django | definido no `requirements.txt` |
+
+Recomenda-se utilizar:
+
+- VS Code
+- PostgreSQL local ou Supabase
+- Git
+- Terminal/PowerShell
+
+Para verificar as instalações:
+
+```bash
+git --version
+node --version
+npm --version
+python --version
+psql --version
+```
+
+No Windows, caso `python` não funcione:
+
+```bash
+py --version
 ```
 
 ---
 
-# 7. Multi-tenancy
+# 7. Clonando o Projeto
+
+Clone o repositório:
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+```
+
+Entre na pasta:
+
+```bash
+cd OneClinic
+```
+
+Caso o projeto possua Frontend e Backend em diretórios separados, a estrutura esperada será semelhante a:
+
+```text
+OneClinic/
+│
+├── frontend/
+├── backend/
+├── README.md
+└── .gitignore
+```
+
+A estrutura real do projeto deve ser mantida conforme o repositório.
+
+---
+
+# 8. Configuração do PostgreSQL
+
+O OneClinic utiliza PostgreSQL como banco de dados.
+
+É possível utilizar:
+
+- PostgreSQL instalado localmente;
+- Supabase;
+- Outro servidor PostgreSQL compatível.
+
+## 8.1 Criando o banco localmente
+
+Após instalar o PostgreSQL, crie um banco:
+
+```sql
+CREATE DATABASE oneclinic;
+```
+
+Caso seja necessário criar um usuário específico:
+
+```sql
+CREATE USER oneclinic_user WITH PASSWORD 'sua_senha';
+```
+
+Conceda acesso ao banco:
+
+```sql
+GRANT ALL PRIVILEGES ON DATABASE oneclinic TO oneclinic_user;
+```
+
+> Os comandos podem variar de acordo com a configuração da instalação do PostgreSQL.
+
+---
+
+# 9. Configuração das Variáveis de Ambiente
+
+As informações sensíveis não devem ser armazenadas diretamente no código-fonte.
+
+O Backend deve utilizar um arquivo `.env`.
+
+Exemplo:
+
+```env
+DEBUG=True
+
+SECRET_KEY=sua-chave-secreta
+
+DB_NAME=oneclinic
+DB_USER=oneclinic_user
+DB_PASSWORD=sua_senha
+DB_HOST=localhost
+DB_PORT=5432
+
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+```
+
+Caso esteja utilizando Supabase, substitua os dados de conexão pelos fornecidos pelo projeto.
+
+### Importante
+
+O arquivo `.env` não deve ser enviado para o Git.
+
+No `.gitignore`:
+
+```gitignore
+.env
+.env.*
+```
+
+---
+
+# 10. Instalação do Backend Django
+
+Entre na pasta do Backend:
+
+```bash
+cd backend
+```
+
+## 10.1 Criar ambiente virtual
+
+No Windows:
+
+```bash
+python -m venv venv
+```
+
+Ou:
+
+```bash
+py -m venv venv
+```
+
+No Linux/macOS:
+
+```bash
+python3 -m venv venv
+```
+
+## 10.2 Ativar o ambiente virtual
+
+### Windows PowerShell
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+### Windows CMD
+
+```cmd
+venv\Scripts\activate
+```
+
+### Linux/macOS
+
+```bash
+source venv/bin/activate
+```
+
+Após ativar, o terminal deverá apresentar algo semelhante a:
+
+```text
+(venv)
+```
+
+---
+
+# 11. Instalar Dependências do Django
+
+Com o ambiente virtual ativado:
+
+```bash
+python -m pip install --upgrade pip
+```
+
+Depois:
+
+```bash
+pip install -r requirements.txt
+```
+
+Caso o projeto ainda não possua um `requirements.txt`, as principais dependências podem ser instaladas com:
+
+```bash
+pip install django
+pip install djangorestframework
+pip install psycopg2-binary
+pip install python-dotenv
+pip install django-cors-headers
+```
+
+Depois, recomenda-se gerar o arquivo:
+
+```bash
+pip freeze > requirements.txt
+```
+
+---
+
+# 12. Configuração do Django
+
+O Backend deverá possuir uma estrutura semelhante a:
+
+```text
+backend/
+│
+├── manage.py
+│
+├── config/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+│
+├── apps/
+│   ├── accounts/
+│   ├── clientes/
+│   ├── agenda/
+│   ├── planos/
+│   ├── estoque/
+│   ├── financeiro/
+│   └── notificacoes/
+│
+├── requirements.txt
+├── .env
+└── venv/
+```
+
+A estrutura pode variar conforme a implementação atual.
+
+---
+
+# 13. Executar as Migrations
+
+Ainda dentro da pasta `backend` e com o ambiente virtual ativado:
+
+```bash
+python manage.py makemigrations
+```
+
+Depois:
+
+```bash
+python manage.py migrate
+```
+
+As migrations irão criar e atualizar as tabelas do banco PostgreSQL de acordo com os modelos Django.
+
+---
+
+# 14. Criar Superusuário
+
+Para acessar o Django Admin:
+
+```bash
+python manage.py createsuperuser
+```
+
+O terminal solicitará:
+
+```text
+Username:
+Email:
+Password:
+Password (again):
+```
+
+Depois será possível acessar:
+
+```text
+http://127.0.0.1:8000/admin/
+```
+
+---
+
+# 15. Executar o Backend
+
+Com o ambiente virtual ativado:
+
+```bash
+python manage.py runserver
+```
+
+O Backend estará disponível normalmente em:
+
+```text
+http://127.0.0.1:8000/
+```
+
+A API poderá ser acessada através dos endpoints definidos no projeto.
+
+Exemplo:
+
+```text
+http://127.0.0.1:8000/api/
+```
+
+---
+
+# 16. Instalação do Frontend Vue.js
+
+Abra outro terminal.
+
+Acesse a pasta do Frontend:
+
+```bash
+cd frontend
+```
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+---
+
+# 17. Configuração do Frontend
+
+O Frontend deve possuir uma variável indicando a URL da API Django.
+
+Exemplo de `.env`:
+
+```env
+VITE_API_URL=http://127.0.0.1:8000/api
+```
+
+Caso a aplicação utilize outra variável ou estrutura de configuração, deve-se seguir o padrão já existente no projeto.
+
+Exemplo de uso:
+
+```javascript
+const API_URL = import.meta.env.VITE_API_URL;
+```
+
+---
+
+# 18. Executar o Frontend
+
+Dentro da pasta `frontend`:
+
+```bash
+npm run dev
+```
+
+O Vite deverá informar algo semelhante a:
+
+```text
+Local: http://localhost:5173/
+```
+
+Acesse:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# 19. Executando Frontend e Backend
+
+Para executar o sistema completo, é necessário manter **dois terminais abertos**.
+
+### Terminal 1 — Backend
+
+```bash
+cd backend
+```
+
+Ative o ambiente virtual:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+Execute:
+
+```bash
+python manage.py runserver
+```
+
+Backend:
+
+```text
+http://127.0.0.1:8000
+```
+
+### Terminal 2 — Frontend
+
+```bash
+cd frontend
+```
+
+Execute:
+
+```bash
+npm run dev
+```
+
+Frontend:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# 20. Fluxo de Execução
+
+```text
+                    ┌──────────────────┐
+                    │      Usuário     │
+                    └────────┬─────────┘
+                             │
+                             ↓
+                    ┌──────────────────┐
+                    │   Vue.js + Vite  │
+                    │ localhost:5173   │
+                    └────────┬─────────┘
+                             │
+                         HTTP/REST
+                             │
+                             ↓
+                    ┌──────────────────┐
+                    │ Django REST API  │
+                    │ 127.0.0.1:8000  │
+                    └────────┬─────────┘
+                             │
+                             ↓
+                    ┌──────────────────┐
+                    │    PostgreSQL    │
+                    │      :5432       │
+                    └──────────────────┘
+```
+
+---
+
+# 21. Integração Frontend + Backend
+
+Esta é a principal atividade técnica da próxima etapa.
+
+## Estado atual
+
+As telas do Frontend já estão prontas.
+
+O objetivo é conectar essas telas às APIs reais.
+
+### Fluxo esperado
+
+```text
+Usuário
+   ↓
+Tela Vue.js
+   ↓
+Service / API Client
+   ↓
+Django REST API
+   ↓
+Regra de negócio
+   ↓
+PostgreSQL
+   ↓
+Resposta JSON
+   ↓
+Vue.js
+   ↓
+Interface atualizada
+```
+
+---
+
+# 22. Organização Recomendada da Integração
+
+No Frontend, criar uma camada responsável pelas chamadas da API.
+
+Exemplo conceitual:
+
+```text
+frontend/
+└── src/
+    ├── api/
+    │   ├── auth.ts
+    │   ├── clientes.ts
+    │   ├── agenda.ts
+    │   ├── planos.ts
+    │   ├── estoque.ts
+    │   └── financeiro.ts
+    │
+    ├── components/
+    ├── pages/
+    ├── layouts/
+    ├── router/
+    ├── stores/
+    └── services/
+```
+
+No Backend:
+
+```text
+backend/
+├── apps/
+│   ├── accounts/
+│   ├── clientes/
+│   ├── agenda/
+│   ├── planos/
+│   ├── estoque/
+│   ├── financeiro/
+│   └── notificacoes/
+│
+├── config/
+├── manage.py
+├── requirements.txt
+└── .env
+```
+
+A estrutura real deve seguir o que já foi implementado no projeto, evitando reorganização desnecessária.
+
+---
+
+# 23. API
+
+A API deve possuir endpoints organizados por domínio.
+
+Exemplo:
+
+```text
+/api/auth/
+/api/clientes/
+/api/agendamentos/
+/api/profissionais/
+/api/planos/
+/api/pacotes/
+/api/cupons/
+/api/produtos/
+/api/estoque/
+/api/pagamentos/
+/api/financeiro/
+/api/notificacoes/
+```
+
+Exemplos de operações:
+
+```http
+GET    /api/clientes/
+POST   /api/clientes/
+GET    /api/clientes/{id}/
+PUT    /api/clientes/{id}/
+PATCH  /api/clientes/{id}/
+```
+
+Agenda:
+
+```http
+GET    /api/agendamentos/
+POST   /api/agendamentos/
+GET    /api/agendamentos/{id}/
+PUT    /api/agendamentos/{id}/
+DELETE /api/agendamentos/{id}/
+```
+
+---
+
+# 24. Multi-tenancy
 
 O sistema foi projetado para permitir múltiplas clínicas.
 
@@ -220,7 +781,7 @@ Nenhum usuário deve conseguir consultar ou alterar dados pertencentes a outra c
 
 ---
 
-# 8. Níveis de Acesso
+# 25. Níveis de Acesso
 
 O sistema possui três níveis principais:
 
@@ -266,9 +827,9 @@ As permissões devem ser validadas **também no Backend**, e não somente no Fro
 
 ---
 
-# 9. Módulos do Sistema
+# 26. Módulos do Sistema
 
-## 9.1 Autenticação
+## 26.1 Autenticação
 
 ### Situação
 
@@ -287,7 +848,7 @@ As permissões devem ser validadas **também no Backend**, e não somente no Fro
 
 ---
 
-# 9.2 Clientes
+## 26.2 Clientes
 
 Funcionalidades previstas:
 
@@ -317,11 +878,11 @@ data_cadastro
 
 ---
 
-# 9.3 Agenda — PRIORIDADE
+## 26.3 Agenda — PRIORIDADE
 
 A Agenda é o principal objetivo de conclusão da fase atual.
 
-## Objetivo
+### Objetivo
 
 Permitir que a clínica visualize e gerencie seus atendimentos de maneira organizada, evitando conflitos de horários.
 
@@ -369,7 +930,7 @@ A validação deve existir no Backend e, quando possível, também ser reforçad
 
 ---
 
-# 9.4 Planos e Pacotes
+## 26.4 Planos e Pacotes
 
 Funcionalidades:
 
@@ -385,7 +946,7 @@ Funcionalidades:
 
 ---
 
-# 9.5 Cupons
+## 26.5 Cupons
 
 Funcionalidades:
 
@@ -400,7 +961,7 @@ Funcionalidades:
 
 ---
 
-# 9.6 Estoque
+## 26.6 Estoque
 
 Funcionalidades:
 
@@ -416,13 +977,13 @@ Funcionalidades:
 - [ ] Alertas
 - [ ] Histórico de movimentações
 
-Regra:
+### Regra
 
 > O estoque não deve ficar negativo.
 
 ---
 
-# 9.7 Financeiro
+## 26.7 Financeiro
 
 Funcionalidades:
 
@@ -440,7 +1001,7 @@ Funcionalidades:
 
 ---
 
-# 9.8 Notificações
+## 26.8 Notificações
 
 Canais planejados:
 
@@ -459,7 +1020,7 @@ Funcionalidades:
 
 ---
 
-# 9.9 Dashboard
+## 26.9 Dashboard
 
 ### Admin
 
@@ -484,7 +1045,7 @@ Funcionalidades:
 
 ---
 
-# 9.10 Relatórios
+## 26.10 Relatórios
 
 - [ ] Financeiro
 - [ ] Clientes
@@ -498,129 +1059,7 @@ Funcionalidades:
 
 ---
 
-# 10. Integração Frontend + Backend
-
-Esta é a principal atividade técnica da próxima etapa.
-
-## Estado atual
-
-As telas do Frontend já estão prontas.
-
-O objetivo é conectar essas telas às APIs reais.
-
-### Fluxo esperado
-
-```text
-Usuário
-   ↓
-Tela Vue.js
-   ↓
-Service / API Client
-   ↓
-Django REST API
-   ↓
-Regra de negócio
-   ↓
-PostgreSQL
-   ↓
-Resposta JSON
-   ↓
-Vue.js
-   ↓
-Interface atualizada
-```
-
----
-
-# 11. Organização Recomendada da Integração
-
-No Frontend, criar uma camada responsável pelas chamadas da API.
-
-Exemplo conceitual:
-
-```text
-src/
-├── api/
-│   ├── auth.ts
-│   ├── clientes.ts
-│   ├── agenda.ts
-│   ├── planos.ts
-│   ├── estoque.ts
-│   └── financeiro.ts
-│
-├── components/
-├── pages/
-├── layouts/
-├── router/
-├── stores/
-└── services/
-```
-
-No Backend:
-
-```text
-backend/
-├── apps/
-│   ├── accounts/
-│   ├── clientes/
-│   ├── agenda/
-│   ├── planos/
-│   ├── estoque/
-│   ├── financeiro/
-│   └── notificacoes/
-│
-├── config/
-└── manage.py
-```
-
-A estrutura real deve seguir o que já foi implementado no projeto, evitando reorganização desnecessária.
-
----
-
-# 12. API
-
-A API deve possuir endpoints organizados por domínio.
-
-Exemplo:
-
-```text
-/api/auth/
-/api/clientes/
-/api/agendamentos/
-/api/profissionais/
-/api/planos/
-/api/pacotes/
-/api/cupons/
-/api/produtos/
-/api/estoque/
-/api/pagamentos/
-/api/financeiro/
-/api/notificacoes/
-```
-
-Exemplos de operações:
-
-```http
-GET    /api/clientes/
-POST   /api/clientes/
-GET    /api/clientes/{id}/
-PUT    /api/clientes/{id}/
-PATCH  /api/clientes/{id}/
-```
-
-Agenda:
-
-```http
-GET    /api/agendamentos/
-POST   /api/agendamentos/
-GET    /api/agendamentos/{id}/
-PUT    /api/agendamentos/{id}/
-DELETE /api/agendamentos/{id}/
-```
-
----
-
-# 13. Segurança
+# 27. Segurança
 
 O projeto considera a natureza sensível dos dados tratados.
 
@@ -647,7 +1086,7 @@ O projeto considera a natureza sensível dos dados tratados.
 
 ---
 
-# 14. Regras de Negócio Prioritárias
+# 28. Regras de Negócio Prioritárias
 
 ### Usuários
 
@@ -683,11 +1122,11 @@ O projeto considera a natureza sensível dos dados tratados.
 
 ---
 
-# 15. Testes
+# 29. Testes
 
 A integração deverá ser acompanhada por testes.
 
-### Backend
+## Backend
 
 - [ ] Testes de autenticação
 - [ ] Testes de autorização
@@ -697,7 +1136,7 @@ A integração deverá ser acompanhada por testes.
 - [ ] Testes de financeiro
 - [ ] Testes de estoque
 
-### Frontend
+## Frontend
 
 - [ ] Testes de formulários
 - [ ] Testes de navegação
@@ -731,7 +1170,95 @@ Atualizar financeiro/estoque
 
 ---
 
-# 16. Cronograma de Desenvolvimento
+# 30. Solução de Problemas
+
+## Backend não inicia
+
+Verifique se o ambiente virtual está ativado:
+
+```bash
+.\venv\Scripts\Activate.ps1
+```
+
+Depois:
+
+```bash
+python manage.py runserver
+```
+
+## Erro de banco de dados
+
+Verifique:
+
+```env
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+DB_HOST=
+DB_PORT=
+```
+
+Teste se o PostgreSQL está em execução.
+
+Depois execute:
+
+```bash
+python manage.py migrate
+```
+
+## Erro `No module named ...`
+
+Com o ambiente virtual ativado:
+
+```bash
+pip install -r requirements.txt
+```
+
+Caso o pacote não esteja no arquivo:
+
+```bash
+pip install nome-do-pacote
+```
+
+E atualize:
+
+```bash
+pip freeze > requirements.txt
+```
+
+## Erro no `npm install`
+
+No Windows PowerShell:
+
+```powershell
+Remove-Item -Recurse -Force node_modules
+```
+
+Depois:
+
+```bash
+npm install
+```
+
+## Frontend não consegue acessar o Backend
+
+Verifique se o Django está rodando:
+
+```text
+http://127.0.0.1:8000
+```
+
+Verifique a variável do Frontend:
+
+```env
+VITE_API_URL=http://127.0.0.1:8000/api
+```
+
+Também verifique a configuração de CORS no Django.
+
+---
+
+# 31. Cronograma de Desenvolvimento
 
 ## Fase 1 — Integração da Autenticação
 
@@ -744,8 +1271,6 @@ Atualizar financeiro/estoque
 - [ ] Permissões
 - [ ] Tratamento de erros
 
----
-
 ## Fase 2 — Integração dos Cadastros
 
 **Objetivo:** substituir dados estáticos por dados reais.
@@ -756,8 +1281,6 @@ Atualizar financeiro/estoque
 - [ ] Produtos
 - [ ] Planos
 - [ ] Cupons
-
----
 
 ## Fase 3 — Agenda
 
@@ -777,8 +1300,6 @@ Atualizar financeiro/estoque
 - [ ] Integração com estoque
 - [ ] Testes completos
 
----
-
 ## Fase 4 — Financeiro e Estoque
 
 - [ ] Pagamentos
@@ -788,8 +1309,6 @@ Atualizar financeiro/estoque
 - [ ] Produtos
 - [ ] Movimentações
 - [ ] Alertas
-
----
 
 ## Fase 5 — Notificações e Relatórios
 
@@ -802,7 +1321,7 @@ Atualizar financeiro/estoque
 
 ---
 
-# 17. Meta de Entrega — Novembro de 2026
+# 32. Meta de Entrega — Novembro de 2026
 
 A meta principal da etapa atual é ter, até **novembro de 2026**, um fluxo de agenda funcional e integrado ao restante da aplicação.
 
@@ -834,7 +1353,7 @@ A prioridade é entregar primeiro um fluxo funcional e consistente, evitando des
 
 ---
 
-# 18. Roadmap
+# 33. Roadmap
 
 ## Curto prazo
 
@@ -867,7 +1386,7 @@ A prioridade é entregar primeiro um fluxo funcional e consistente, evitando des
 
 ---
 
-# 19. Documentação do Projeto
+# 34. Documentação do Projeto
 
 O projeto possui documentação relacionada a:
 
@@ -887,7 +1406,7 @@ A documentação deve acompanhar a evolução da implementação.
 
 ---
 
-# 20. Licenciamento
+# 35. Licenciamento
 
 O projeto possui caráter privado e está sujeito às regras de propriedade intelectual definidas pelo autor.
 
@@ -895,7 +1414,7 @@ Não é autorizada a reprodução, comercialização ou criação de projetos de
 
 ---
 
-# 21. Autor
+# 36. Autor
 
 **Wedley Silva Schmoeller**
 
@@ -905,7 +1424,7 @@ Projeto desenvolvido individualmente como solução SaaS para gestão de clínic
 
 ---
 
-## OneClinic
+# OneClinic
 
 **Gestão inteligente para clínicas de estética.**
 
